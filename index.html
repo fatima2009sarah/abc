@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>AI MUSIC WEB APP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/p5.js"></script>
+  <script src="https://unpkg.com/ml5@0.4.3/dist/ml5.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/addons/p5.sound.min.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="style.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.0.0/addons/p5.sound.min.js"></script>
+ 
+</head>
+<body background="https://media.istockphoto.com/vectors/music-note-vector-id695718706?k=20&m=695718706&s=612x612&w=0&h=a88L-TsG5Nq3RsQOKBHBWETEOV6FmLRmvExsdUaxUFQ=">
+<center>
+  	<h3 class="btn btn-warning heading">AI MUSIC WEB APP
+	    <br>
+	    <span class="note">NOTE - Get your left-hand wrist in front of the webcam to play one song. 
+			Get your right-hand wrist in front of the webcam to play Other Song.</span>
+  	</h3>
+
+	<br><br>
+	<h3 class="btn btn-danger" id="song">Song Name</h3>
+</center>
+
+<script>
+  song1 = "";
+song2 = "";
+
+song1_status = "";
+song2_status = "";
+
+scoreRightWrist = 0;
+scoreLeftWrist = 0;
+
+rightWristX = 0;
+rightWristY = 0;
+
+leftWristX = 0;
+leftWristY = 0;
+
+function preload()
+{
+	song1 = loadSound("music.mp3");
+	song2 = loadSound("music2.mp3");
+}
+
+function setup() {
+	canvas =  createCanvas(600, 500);
+	canvas.center();
+
+	video = createCapture(VIDEO);
+	video.hide();
+
+	poseNet = ml5.poseNet(video, modelLoaded);
+	poseNet.on('pose', gotPoses);
+}
+
+function modelLoaded() {
+  console.log('PoseNet Is Initialized');
+}
+
+function gotPoses(results)
+{
+  if(results.length > 0)
+  {
+	console.log(results);
+	scoreRightWrist =  results[0].pose.keypoints[10].score;
+	scoreLeftWrist =  results[0].pose.keypoints[9].score;
+	console.log("scoreRightWrist = " + scoreRightWrist + "scoreLeftWrist = " + scoreLeftWrist);
+	
+	rightWristX = results[0].pose.rightWrist.x;
+	rightWristY = results[0].pose.rightWrist.y;
+	console.log("rightWristX = " + rightWristX +" rightWristY = "+ rightWristY);
+
+	leftWristX = results[0].pose.leftWrist.x;
+	leftWristY = results[0].pose.leftWrist.y;
+	console.log("leftWristX = " + leftWristX +" leftWristY = "+ leftWristY);
+		
+  }
+}
+
+function draw() {
+	image(video, 0, 0, 600, 500);
+	
+	song1_status = song1.isPlaying();
+	song2_status = song2.isPlaying();
+
+	fill("#FF0000");
+	stroke("#FF0000");
+
+	if(scoreRightWrist > 0.2)
+	{ 
+		circle(rightWristX,rightWristY,20);
+
+			song2.stop();
+
+		if(song1_status == false)
+		{
+			song1.play();
+			document.getElementById("song").innerHTML = "Playing - Harry Potter Theme Song"
+		}
+	}
+
+	if(scoreLeftWrist > 0.2)
+	{
+		circle(leftWristX,leftWristY,20);
+
+			song1.stop();
+
+		if(song2_status == false)
+		{
+			song2.play();
+			document.getElementById("song").innerHTML = "Playing - Peter Pan Song"
+		}
+	}
+
+}
+
+function play()
+{
+	song.play();
+	song.setVolume(1);
+	song.rate(1);
+}
+
+</script>
+</body>
+</html>
